@@ -195,3 +195,7 @@ func (rsp *Parser) ParseSas7bdatData(path string, data *Data) {
 	pathb := []byte(path)
 	C.readstat_parse_sas7bdat(rsp.parser, (*C.char)(unsafe.Pointer(&pathb[0])), unsafe.Pointer(data))
 }
+
+func (rsp *Parser) Close() {
+	C.readstat_parser_free(rsp.parser)
+}
