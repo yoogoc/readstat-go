@@ -1,11 +1,13 @@
 package readstat
 
-import "time"
+import (
+	"time"
+)
 
 type Compression int
 
 const (
-	CompressNone = iota
+	CompressNone Compression = iota
 	CompressRows
 	CompressBinary
 )
@@ -13,7 +15,7 @@ const (
 type Endian int
 
 const (
-	EndianNone = iota
+	EndianNone Compression = iota
 	EndianLittle
 	EndianBig
 )
@@ -36,7 +38,7 @@ type Metadata struct {
 type VarType int
 
 const (
-	TypeString = iota
+	TypeString VarType = iota
 	TypeInt8
 	TypeInt16
 	TypeInt32
@@ -48,14 +50,14 @@ const (
 type VarTypeClass int
 
 const (
-	VarTypeClassString = iota
+	VarTypeClassString VarTypeClass = iota
 	VarTypeClassStringNumeric
 )
 
 type VarFormatClass int
 
 const (
-	VarFormatClassDate = iota
+	VarFormatClassDate VarFormatClass = iota
 	VarFormatClassDateTime
 	VarFormatClassDateTimeWithMilliseconds
 	VarFormatClassDateTimeWithMicroseconds
@@ -70,4 +72,43 @@ type VarMetadata struct {
 	VarLabel       string
 	VarFormat      string
 	VarFormatClass *VarFormatClass
+}
+
+type Data struct {
+	Metadata *Metadata
+	Vars     [][]*Var
+}
+
+//go:generate go run -mod=mod golang.org/x/tools/cmd/stringer -type=ValueType
+type ValueType int
+
+const (
+	ValueTypeString ValueType = iota
+	ValueTypeI8
+	ValueTypeI16
+	ValueTypeI32
+	ValueTypeF32
+	ValueTypeF64
+	ValueTypeDate
+	ValueTypeDateTime
+	ValueTypeDateTimeWithMilliseconds
+	ValueTypeDateTimeWithMicroseconds
+	ValueTypeDateTimeWithNanoseconds
+	ValueTypeTime
+)
+
+type Var struct {
+	Type                          ValueType
+	StringValue                   *string
+	I8Value                       *int8
+	I16Value                      *int16
+	I32Value                      *int32
+	F32Value                      *float32
+	F64Value                      *float64
+	DateValue                     *time.Time
+	DateTimeValue                 *time.Time
+	DateTimeWithMillisecondsValue *time.Time
+	DateTimeWithMicrosecondsValue *time.Time
+	DateTimeWithNanosecondsValue  *time.Time
+	TimeValue                     *time.Time
 }
