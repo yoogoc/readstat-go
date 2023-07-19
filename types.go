@@ -30,4 +30,44 @@ type Metadata struct {
 	FileLabel         string
 	FileEncoding      string
 	Is64bit           bool
+	Vars              map[int]VarMetadata
+}
+
+type VarType int
+
+const (
+	TypeString = iota
+	TypeInt8
+	TypeInt16
+	TypeInt32
+	TypeFloat
+	TypeDouble
+	TypeStringRef
+)
+
+type VarTypeClass int
+
+const (
+	VarTypeClassString = iota
+	VarTypeClassStringNumeric
+)
+
+type VarFormatClass int
+
+const (
+	VarFormatClassDate = iota
+	VarFormatClassDateTime
+	VarFormatClassDateTimeWithMilliseconds
+	VarFormatClassDateTimeWithMicroseconds
+	VarFormatClassDateTimeWithNanoseconds
+	VarFormatClassTime
+)
+
+type VarMetadata struct {
+	VarName        string
+	VarType        VarType
+	VarTypeClass   VarTypeClass
+	VarLabel       string
+	VarFormat      string
+	VarFormatClass *VarFormatClass
 }

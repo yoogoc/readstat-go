@@ -1,7 +1,7 @@
 package readstat
 
 import (
-	"fmt"
+	"time"
 	"unsafe"
 )
 
@@ -9,13 +9,13 @@ import (
 #cgo darwin  LDFLAGS: -liconv
 #cgo freebsd LDFLAGS: -liconv
 #cgo windows LDFLAGS: -liconv
-#cgo LDFLAGS: -L./sas
 #include <iconv.h>
 #include <stdlib.h>
 #include <errno.h>
-#include "sas/readstat_sas.h"
+#include "readstat_sas.h"
 
-int metadataHandler(readstat_metadata_t *metadata, void *ctx);
+int goMetadataHandler(readstat_metadata_t *metadata, void *ctx);
+int goVariableHandler(int index, readstat_variable_t *variable, char *val_labels, void *ctx);
 */
 import "C"
 
@@ -23,18 +23,60 @@ type Parser struct {
 	parser *C.readstat_parser_t
 }
 
-//export metadataHandler
-func metadataHandler(metadata *C.readstat_metadata_t, ctx unsafe.Pointer) C.int {
-	fmt.Println("xxxx")
+//export goMetadataHandler
+func goMetadataHandler(metadata *C.readstat_metadata_t, ctx unsafe.Pointer) C.int {
+	target := (*Metadata)(ctx)
+	target.RowCount = int64(C.readstat_get_row_count(metadata))
+	target.VarCount = int64(C.readstat_get_var_count(metadata))
+	target.CreationTime = time.Unix(int64(int32(C.readstat_get_creation_time(metadata))), 0)
+	target.ModifiedTime = time.Unix(int64(int32(C.readstat_get_modified_time(metadata))), 0)
+	target.FileFormatVersion = int64(C.readstat_get_file_format_version(metadata))
+	target.Compression = Compression(C.readstat_get_compression(metadata))
+	target.Endianness = Endian(C.readstat_get_endianness(metadata))
+	target.TableName = C.GoString(C.readstat_get_table_name(metadata))
+	target.FileLabel = C.GoString(C.readstat_get_file_label(metadata))
+	target.FileEncoding = C.GoString(C.readstat_get_file_encoding(metadata))
+	target.Is64bit = int(C.readstat_get_file_format_is_64bit(metadata)) == 1
+	return C.READSTAT_OK
+}
+
+//export goVariableHandler
+func goVariableHandler(index C.int, variable *C.readstat_variable_t, val_labels *C.char, ctx unsafe.Pointer) C.int {
+	target := (*Metadata)(ctx)
+	if target.Vars == nil {
+		target.Vars = make(map[int]VarMetadata)
+	}
+	v := VarMetadata{}
+	v.VarName = C.GoString(C.readstat_variable_get_name(variable))
+	v.VarType = VarType(C.readstat_variable_get_type(variable))
+	v.VarTypeClass = VarTypeClass(C.readstat_variable_get_type_class(variable))
+	v.VarLabel = C.GoString(C.readstat_variable_get_label(variable))
+	v.VarFormat = C.GoString(C.readstat_variable_get_format(variable))
+	v.VarFormatClass = getFormat(v.VarFormat)
+
+	target.Vars[int(index)] = v
+
 	return C.READSTAT_OK
 }
 
 func ParserInit() *Parser {
-	return &Parser{C.readstat_parser_init()}
+	p := &Parser{C.readstat_parser_init()}
+	return p
 }
 
+// ReadstatSetMetadataHandler TODO conv error
 func (rsp *Parser) ReadstatSetMetadataHandler() {
-	C.readstat_set_metadata_handler(rsp.parser, (*[0]byte)(unsafe.Pointer(C.metadataHandler)))
+	C.readstat_set_metadata_handler(rsp.parser, (*[0]byte)(unsafe.Pointer(C.goMetadataHandler)))
+}
+
+// ReadstatSetVariableHandler TODO conv error
+func (rsp *Parser) ReadstatSetVariableHandler() {
+	C.readstat_set_variable_handler(rsp.parser, (*[0]byte)(unsafe.Pointer(C.goVariableHandler)))
+}
+
+// ReadstatSetRowLimit TODO conv error
+func (rsp *Parser) ReadstatSetRowLimit(limit int32) {
+	C.readstat_set_row_limit(rsp.parser, C.long(limit))
 }
 
 func (rsp *Parser) ParseSas7bdat(path string, md *Metadata) {
