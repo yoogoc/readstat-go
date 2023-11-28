@@ -98,17 +98,6 @@ const (
 )
 
 type Var struct {
-	Type                          ValueType
-	StringValue                   *string
-	I8Value                       *int8
-	I16Value                      *int16
-	I32Value                      *int32
-	F32Value                      *float32
-	F64Value                      *float64
-	DateValue                     *time.Time
-	DateTimeValue                 *time.Time
-	DateTimeWithMillisecondsValue *time.Time
-	DateTimeWithMicrosecondsValue *time.Time
-	DateTimeWithNanosecondsValue  *time.Time
-	TimeValue                     *time.Time
+	Type  ValueType
+	Value any
 }

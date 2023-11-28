@@ -117,38 +117,38 @@ func getValue(value C.readstat_value_t, valueType VarType, missing bool, varForm
 	switch valueType {
 	case TypeString, TypeStringRef:
 		vv := C.GoString(C.readstat_string_value(value))
-		v.StringValue = &vv
+		v.Value = &vv
 	case TypeInt8:
 		vv := int8(C.readstat_int8_value(value))
-		v.I8Value = &vv
+		v.Value = &vv
 	case TypeInt16:
 		vv := int16(C.readstat_int16_value(value))
-		v.I16Value = &vv
+		v.Value = &vv
 	case TypeInt32:
 		vv := int32(C.readstat_int32_value(value))
-		v.I32Value = &vv
+		v.Value = &vv
 	case TypeFloat:
 		vv := float32(C.readstat_float_value(value))
-		v.F32Value = &vv
+		v.Value = &vv
 	case TypeDouble:
 		vv := float64(C.readstat_double_value(value))
 		if varFormatClass == nil {
-			v.F64Value = &vv
+			v.Value = &vv
 		} else {
 			vvv := time.Unix(int64(vv), 0)
 			switch *varFormatClass {
 			case VarFormatClassDate:
-				v.DateValue = &vvv
+				v.Value = &vvv
 			case VarFormatClassDateTime:
-				v.DateTimeValue = &vvv
+				v.Value = &vvv
 			case VarFormatClassDateTimeWithMilliseconds:
-				v.DateTimeWithMillisecondsValue = &vvv
+				v.Value = &vvv
 			case VarFormatClassDateTimeWithMicroseconds:
-				v.DateTimeWithMicrosecondsValue = &vvv
+				v.Value = &vvv
 			case VarFormatClassDateTimeWithNanoseconds:
-				v.DateTimeWithNanosecondsValue = &vvv
+				v.Value = &vvv
 			case VarFormatClassTime:
-				v.TimeValue = &vvv
+				v.Value = &vvv
 			}
 		}
 	}
